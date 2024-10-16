@@ -39,7 +39,7 @@ module.exports = {
     // let device = await DetectDevice(req.headers['user-agent'], req)
     let userIp = DetectIp(req);
     // UserInfo.devcrb = device
-    UserInfo.devirb = userIp;sdid
+    UserInfo.devirb = userIp;
     let EncUserInfo = MainEnc(UserInfo); //encrypt entire user information
     const accessToken = jwt.sign(
       { EncUserInfo },
@@ -55,7 +55,7 @@ module.exports = {
       maxAge: 1 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
     };
     logger.info("Logged in successfully");
-    return res.status(code).cookie("", accessToken, options);
+    return res.status(code).cookie("sdid", accessToken, options);
   },
 
   clearResponse: (req, res) => {
