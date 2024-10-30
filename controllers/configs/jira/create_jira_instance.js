@@ -13,7 +13,6 @@ const {
 } = require("../../../functions/dynamic");
 
 exports.SetupJiraInstance = asynHandler(async (req, res, next) => {
-  console.log(req.body);
   let payload = req.body;
   const salt = await bcyrpt.genSalt(10);
   let password = await bcyrpt.hash(payload.password, salt);

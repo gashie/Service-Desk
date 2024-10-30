@@ -5,6 +5,7 @@ const { addItem } = require("../functions/dynamic");
 module.exports = {
   autoProcessAuthKey: async (req) => {
     let { name } = req.body;
+    let { code } = req.body;
     let generatekey = generateApiKey({
       method: "uuidv4",
       name: name.replace(/ /g, "_"),
@@ -17,6 +18,7 @@ module.exports = {
     let enrollPayload = {
       api_key: token,
       name,
+      code,
     };
 
     let results = await addItem("channels", enrollPayload);

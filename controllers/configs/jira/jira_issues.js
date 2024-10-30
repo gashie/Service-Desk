@@ -16,9 +16,6 @@ const {
 
 exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
   let channelData = req.channelInfo;
-
-  console.log("before channel log", req.channelInfo);
-
   let jiraInstance = await getActiveJiraInstance();
   let mainJiraInstance = jiraInstance.rows[0];
 
@@ -43,7 +40,7 @@ exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
 
   const payload = {
     channel_id: channelData.channel_id,
-    jira_instance_id: "f40354c7-1a0c-4cf8-a337-2103f89f9de8",
+    jira_instance_id: mainJiraInstance.id,
     request_type: "issue_create",
     request_data: {
       fields: {

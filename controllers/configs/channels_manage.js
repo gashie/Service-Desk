@@ -7,7 +7,6 @@ const {
 } = require("../../functions/dynamic");
 const { autoProcessAuthKey } = require("../../helper/autoCreate");
 exports.SetupChannel = asynHandler(async (req, res, next) => {
-  console.log(req.body);
   let { app_id, api_key, name, results } = await autoProcessAuthKey(req);
   if (results.rowCount == 1) {
     return sendResponse(res, 1, 200, "New channel added", {
@@ -27,9 +26,8 @@ exports.SetupChannel = asynHandler(async (req, res, next) => {
 });
 
 exports.ListAllChannels = asynHandler(async (req, res, next) => {
-  // Logic to get items details from the database
   const tableName = "channels";
-  const columnsToSelect = []; // Use string values for column names
+  const columnsToSelect = [];
   const conditions = [];
   let results = await getItems(tableName, columnsToSelect, conditions);
   if (results.rows.length == 0) {
@@ -38,6 +36,7 @@ exports.ListAllChannels = asynHandler(async (req, res, next) => {
 
   sendResponse(res, 1, 200, "Record Found", results.rows);
 });
+
 exports.GetChannelById = asynHandler(async (req, res, next) => {
   // Logic to get user details from the database
   const tableName = "channels";
@@ -49,6 +48,7 @@ exports.GetChannelById = asynHandler(async (req, res, next) => {
   }
   sendResponse(res, 1, 200, "Record Found", results.rows);
 });
+
 exports.UpdateChannel = asynHandler(async (req, res, next) => {
   let payload = req.body;
   const runupdate = await updateItem(payload, "apis", "id", payload.id);
