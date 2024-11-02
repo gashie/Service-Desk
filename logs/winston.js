@@ -1,10 +1,10 @@
-const morgan = require('morgan');
+const morgan = require("morgan");
 const { format, createLogger, transports } = require("winston");
-const { combine, label, json,errors } = format;
+const { combine, label, json, errors } = format;
 require("winston-daily-rotate-file");
 
 //Label
-const CATEGORY = "bulky-main-logs";
+const CATEGORY = "sd-main-logs";
 
 //DailyRotateFile func()
 const fileRotateTransport = new transports.DailyRotateFile({
@@ -15,29 +15,28 @@ const fileRotateTransport = new transports.DailyRotateFile({
 
 const logger = createLogger({
   level: "debug",
-  format: combine(errors({ stack: true }),label({ label: CATEGORY }), json()),
+  format: combine(errors({ stack: true }), label({ label: CATEGORY }), json()),
   transports: [fileRotateTransport, new transports.Console()],
 });
 
-
 const morganMiddleware = morgan(
-    function (tokens, req, res) {
-      return JSON.stringify({
-        method: tokens.method(req, res),
-        url: tokens.url(req, res),
-        status: Number.parseFloat(tokens.status(req, res)),
-        content_length: tokens.res(req, res, 'content-length'),
-        response_time: Number.parseFloat(tokens['response-time'](req, res)),
-      });
-    },
-    {
-      stream: {
-        // Configure Morgan to use collabo logger with the http severity
-        write: (message) => {
-          const data = JSON.parse(message);
-          logger.http(`incoming-bulky-api-request`, data);
-        },
+  function (tokens, req, res) {
+    return JSON.stringify({
+      method: tokens.method(req, res),
+      url: tokens.url(req, res),
+      status: Number.parseFloat(tokens.status(req, res)),
+      content_length: tokens.res(req, res, "content-length"),
+      response_time: Number.parseFloat(tokens["response-time"](req, res)),
+    });
+  },
+  {
+    stream: {
+      // Configure Morgan to use collabo logger with the http severity
+      write: (message) => {
+        const data = JSON.parse(message);
+        logger.http(`incoming-bulky-api-request`, data);
       },
-    }
-  );
-module.exports = {logger,morganMiddleware};
+    },
+  }
+);
+module.exports = { logger, morganMiddleware };

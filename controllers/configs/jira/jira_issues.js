@@ -11,19 +11,11 @@ const {
   updateItem,
   addItem,
   makeApiCall,
-  getActiveJiraInstance,
+  sendtoRabbitMQ,
 } = require("../../../functions/dynamic");
 
 exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
   let channelData = req.channelInfo;
-  let jiraInstance = await getActiveJiraInstance();
-  let mainJiraInstance = jiraInstance.rows[0];
-
-  let tableName = "requests";
-  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
-  //this should be gotten from the jira instance
-  const JiraUsername = mainJiraInstance.username;
-  const JiraPassword = mainJiraInstance.password;
 
   const { summary, description, issuetype } = req.body;
 
@@ -40,7 +32,7 @@ exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
 
   const payload = {
     channel_id: channelData.channel_id,
-    jira_instance_id: mainJiraInstance.id,
+    // jira_instance_id: mainJiraInstance.id,
     request_type: "issue_create",
     request_data: {
       fields: {
@@ -57,31 +49,9 @@ exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
     status: "pending",
   };
 
-  let response = makeApiCall(
-    `${GhIPSSAppUrl}/issue`,
-    "POST",
-    payload.request_data,
-    { Accept: "application/json", "Content-Type": "application/json" },
-    "Basic",
-    {
-      username: `${JiraUsername}`,
-      password: `${JiraPassword}`,
-    }
-  );
+  sendtoRabbitMQ(payload);
 
-  payload.response_data = response;
-  let result = await addItem(tableName, payload);
-  if (result.rowCount == 1) {
-    return sendResponse(res, 1, 200, "Record Saved", []);
-  } else {
-    return sendResponse(
-      res,
-      0,
-      200,
-      "Sorry, error saving record: contact administrator",
-      []
-    );
-  }
+  return sendResponse(res, 1, 200, "Your request is being processed", []);
 });
 
 exports.ListAllJiraIssues = asynHandler(async (req, res, next) => {
@@ -90,7 +60,7 @@ exports.ListAllJiraIssues = asynHandler(async (req, res, next) => {
   const JiraPassword = process.env.JIRA_AUTH_PASSWORD;
 
   let results = makeApiCall(
-    `${GhIPSSAppUrl}project/GCS`,
+    `${GhIPSSAppUrl}issue/{issueIdOrKey}`,
     "GET",
     null,
     { Accept: "application/json", "Content-Type": "application/json" },

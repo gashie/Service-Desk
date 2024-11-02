@@ -6,6 +6,8 @@ const {
   updateItem,
 } = require("../../functions/dynamic");
 const { autoProcessAuthKey } = require("../../helper/autoCreate");
+const cron = require("node-cron");
+
 exports.SetupChannel = asynHandler(async (req, res, next) => {
   let { app_id, api_key, name, results } = await autoProcessAuthKey(req);
   if (results.rowCount == 1) {
@@ -59,8 +61,15 @@ exports.UpdateChannel = asynHandler(async (req, res, next) => {
   }
 });
 
+// req.customLog.event = "TESTING CHANNEL";
+// req.customLog.actor = req.channelInfo.actor;
+// res.send(req.channelInfo);
 exports.TestChannel = asynHandler(async (req, res, next) => {
-  req.customLog.event = "TESTING CHANNEL";
-  req.customLog.actor = req.channelInfo.actor;
-  res.send(req.channelInfo);
+  function logMessage() {
+    console.log("Cron job executed at:", new Date().toLocaleString());
+  }
+
+  cron.schedule("*/10 * * * * *", () => {
+    logMessage("Hello world");
+  });
 });
