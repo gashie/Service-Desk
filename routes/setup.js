@@ -15,6 +15,8 @@ const {
 const {
   SetupJiraIssue,
   ListAllJiraIssues,
+  ListJiraIssue,
+  UpdateJiraIssue,
 } = require("../controllers/configs/jira/jira_issues");
 const router = express.Router();
 
@@ -28,7 +30,9 @@ router.route("/system/update_jira_instance").post(protect, UpdateJiraInstance);
 router.route("/system/get_jira_instance").post(protect, GetJiraInstanceById);
 
 router.route("/system/create_jira_issue").post(protect, SetupJiraIssue);
+router.route("/system/list_jira_issue").post(protect, ListJiraIssue);
 router.route("/system/list_jira_issues").post(protect, ListAllJiraIssues);
+router.route("/system/update_jira_issue").post(protect, UpdateJiraIssue);
 
 router.route("/system/test").post(protect, TestChannel);
 
