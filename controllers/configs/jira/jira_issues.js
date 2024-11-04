@@ -8,8 +8,6 @@ const {
 const {
   getItems,
   getItemById,
-  updateItem,
-  addItem,
   makeApiCall,
   sendtoRabbitMQ,
   getActiveJiraInstance,
@@ -33,7 +31,6 @@ exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
 
   const payload = {
     channel_id: channelData.channel_id,
-    // jira_instance_id: mainJiraInstance.id,
     request_type: "issue_create",
     request_data: {
       fields: {
@@ -80,53 +77,59 @@ exports.ListJiraIssue = asynHandler(async (req, res, next) => {
 
   let results = await getItemById(tableName, columnsToSelect, conditions);
 
-  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
-  const JiraUsername = process.env.JIRA_AUTH_USERNAME;
-  const JiraPassword = process.env.JIRA_AUTH_PASSWORD;
+  let jiraInstance = await getActiveJiraInstance();
+  let mainJiraInstance = jiraInstance.rows[0];
 
-  async function fetchJiraIssues(results) {
-    if (results.rows.length === 0) {
-      return sendResponse(res, 0, 200, "Sorry, No Record Found", []);
+  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
+  const JiraUsername = mainJiraInstance.username;
+  const JiraPassword = mainJiraInstance.password;
+
+  const issueDataPromises = results.rows.map(async (row) => {
+    const issueKey = row.response_data?.key; // Access the key from response_data
+
+    if (!issueKey) {
+      console.warn(`No issue key found for row with id: ${row.id}`);
+      return null; // Return null to signify an invalid or missing issue key
     }
 
     try {
-      // Loop through each result and fetch Jira issue data
-      const issueDataPromises = results.rows.map(async (row) => {
-        const issueKey = row.response_data?.key; // Access the key from response_data
-
-        if (!issueKey) {
-          console.warn(`No issue key found for row with id: ${row.id}`);
-          return { ...row, issueData: null };
+      const response = await makeApiCall(
+        `${GhIPSSAppUrl}issue/${issueKey}`,
+        "GET",
+        null,
+        { Accept: "application/json", "Content-Type": "application/json" },
+        "Basic",
+        {
+          username: JiraUsername,
+          password: JiraPassword,
         }
-        const response = await makeApiCall(
-          `${GhIPSSAppUrl}issue/${issueIdOrKey}`,
-          "GET",
-          null,
-          { Accept: "application/json", "Content-Type": "application/json" },
-          "Basic",
-          {
-            username: JiraUsername,
-            password: JiraPassword,
-          }
-        );
+      );
 
-        // Return the issue data along with the original row data if necessary
-        return { ...row, issueData: response };
-      });
+      // Check if the response contains the expected data structure
+      if (!response || !response.fields) {
+        console.warn(`No issue data found for issue ${issueKey}`);
+        return null; // Return null if issue data is not found
+      }
 
-      // Await all promises to get the data for each issue
-      const issueData = await Promise.all(issueDataPromises);
-
-      // Send response with the collected issue data
-      sendResponse(res, 1, 200, "Record Found", issueData);
+      // Return the issue data along with the original row data
+      return { ...row, issueData: response };
     } catch (error) {
-      console.error("Error fetching Jira issues:", error);
-      sendResponse(res, 0, 500, "Error Fetching Jira Issues", []);
+      console.error(`Error fetching data for issue ${issueKey}:`, error);
+      return null; // Return null in case of an error
     }
-  }
+  });
 
-  // Usage: Call the function and pass in the results object
-  fetchJiraIssues(results);
+  try {
+    // Await all promises and filter out null results
+    const issueData = (await Promise.all(issueDataPromises)).filter(Boolean);
+
+    // Send response with the collected issue data
+    console.log("Filtered issueData:", issueData);
+    sendResponse(res, 1, 200, "Record Found", issueData);
+  } catch (error) {
+    console.error("Error fetching Jira issues:", error);
+    sendResponse(res, 0, 500, "Error Fetching Jira Issues", []);
+  }
 });
 
 exports.GetJiraInstanceById = asynHandler(async (req, res, next) => {
