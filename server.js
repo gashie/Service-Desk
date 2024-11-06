@@ -20,60 +20,59 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 //Prevent XSS Attack
 
 if (process.env.NODE_ENV === "development") {
-    app.use(logMiddleware)
-
+  app.use(logMiddleware);
 }
 
 app.use(function (req, res, next) {
-    res.removeHeader("x-powered-by");
-    res.removeHeader("set-cookie");
-    res.removeHeader("Date");
-    res.removeHeader("Connection");
-  
-    next();
+  res.removeHeader("x-powered-by");
+  res.removeHeader("set-cookie");
+  res.removeHeader("Date");
+  res.removeHeader("Connection");
+
+  next();
 });
 app.use(function (req, res, next) {
-    /* Clickjacking prevention */
-    res.header('Content-Security-Policy', "frame-ancestors directive")
-    next()
-})
-
-
+  /* Clickjacking prevention */
+  res.header("Content-Security-Policy", "frame-ancestors directive");
+  next();
+});
 
 //Mount local routes
-app.use("/api/v1/sd", routes);
+app.use("/api/v1", routes);
 
 app.use(errorHandler);
 // Error-handling middleware must be last
 // app.use(errorHandlerMiddleware);
 //errror middleware
 app.use((req, res, next) => {
-    const error = new Error("Not found");
-    error.status = 404;
-    next(error);
+  const error = new Error("Not found");
+  error.status = 404;
+  next(error);
 });
 
-
 app.use((error, req, res, next) => {
-    res.status(error.status || 500);
-    res.json({
-        status: 0,
-        message: error.message,
-    });
-    logger.error(error.message);
+  res.status(error.status || 500);
+  res.json({
+    status: 0,
+    message: error.message,
+  });
+  logger.error(error.message);
 });
 //create port
 const PORT = process.env.PORT || 9000;
 //listen to portnpm
 app.listen(PORT, () => {
-    console.log(`API: Running in ${process.env.NODE_ENV} mode and listening on port http://:${PORT}`
-    );
-    logger.debug(`API: Running in ${process.env.NODE_ENV} mode and listening on port http://:${PORT}`);
+  console.log(
+    `API: Running in ${process.env.NODE_ENV} mode and listening on port http://:${PORT}`
+  );
+  logger.debug(
+    `API: Running in ${process.env.NODE_ENV} mode and listening on port http://:${PORT}`
+  );
 });
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
-    console.log(`Error: ${err.message}`);
-    logger.error(err.message);
-    // Close server & exit process
-    // server.close(() => process.exit(1));
+  console.log(`Error: ${err.message}`);
+  logger.error(err.message);
+  // Close server & exit process
+  // server.close(() => process.exit(1));
 });

@@ -13,6 +13,132 @@ const {
   getActiveJiraInstance,
 } = require("../../../functions/dynamic");
 
+//this function returns the response to the user without passing through a queue
+exports.CreateJiraIssue = asynHandler(async (req, res, next) => {
+  let channelData = req.channelInfo;
+
+  const { summary, description, issuetype } = req.body;
+
+  // Validate the incoming data
+  if (!summary || !description || !issuetype) {
+    return sendResponse(
+      res,
+      0,
+      400,
+      "Summary, description, and issuetype are required.",
+      []
+    );
+  }
+
+  const payload = {
+    channel_id: channelData.channel_id,
+    request_type: "issue_create",
+    request_data: {
+      fields: {
+        project: {
+          key: "GCS",
+        },
+        summary: summary,
+        description: description,
+        issuetype: {
+          name: issuetype,
+        },
+      },
+    },
+    status: "pending",
+  };
+
+  // Implement API call here
+  let jiraInstance = await getActiveJiraInstance();
+  let mainJiraInstance = jiraInstance.rows[0];
+
+  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
+  const JiraUsername = mainJiraInstance.username;
+  const JiraPassword = mainJiraInstance.password;
+  let response = await makeApiCall(
+    `${GhIPSSAppUrl}/issue`,
+    "POST",
+    payload.request_data,
+    { Accept: "application/json", "Content-Type": "application/json" },
+    "Basic",
+    {
+      username: `${JiraUsername}`,
+      password: `${JiraPassword}`,
+    }
+  );
+  payload.response_data = response;
+  payload.jira_instance_id = mainJiraInstance.id;
+
+  console.log("Response check:", response);
+
+  console.log("Payload:", payload);
+
+  return sendResponse(res, 1, 200, "Your request is being processed", response);
+});
+
+exports.GetJiraIssue = asynHandler(async (req, res, next) => {
+  const issueKey = req.body.issueKey;
+  let jiraInstance = await getActiveJiraInstance();
+  let mainJiraInstance = jiraInstance.rows[0];
+
+  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
+  const JiraUsername = mainJiraInstance.username;
+  const JiraPassword = mainJiraInstance.password;
+
+  const response = await makeApiCall(
+    `${GhIPSSAppUrl}issue/${issueKey}`,
+    "GET",
+    null,
+    { Accept: "application/json", "Content-Type": "application/json" },
+    "Basic",
+    {
+      username: JiraUsername,
+      password: JiraPassword,
+    }
+  );
+
+  console.log(response);
+
+  sendResponse(res, 1, 200, "Record Found", response);
+});
+
+exports.UpdateJiraIssue = asynHandler(async (req, res, next) => {
+  const issueKey = req.body.issueKey;
+  const { summary, description, issuetype } = req.body;
+
+  let jiraInstance = await getActiveJiraInstance();
+  let mainJiraInstance = jiraInstance.rows[0];
+
+  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
+  const JiraUsername = mainJiraInstance.username;
+  const JiraPassword = mainJiraInstance.password;
+
+  const response = await makeApiCall(
+    `${GhIPSSAppUrl}issue/${issueKey}`,
+    "PUT",
+    {
+      fields: {
+        summary: summary,
+        description: description ?? null,
+        issuetype: {
+          name: issuetype ?? null,
+        },
+      },
+    },
+    { Accept: "application/json", "Content-Type": "application/json" },
+    "Basic",
+    {
+      username: JiraUsername,
+      password: JiraPassword,
+    }
+  );
+
+  console.log(response);
+
+  sendResponse(res, 1, 200, "Record Updated", response);
+});
+
+//this functionn sends the request to rabbit mq to process the requests
 exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
   let channelData = req.channelInfo;
 
@@ -53,7 +179,7 @@ exports.SetupJiraIssue = asynHandler(async (req, res, next) => {
 });
 
 exports.ListAllJiraIssues = asynHandler(async (req, res, next) => {
-  const tableName = "requests";
+  const issueKey = req.issueKey;
   const columnsToSelect = [];
   const conditions = [];
   let results = await getItems(tableName, columnsToSelect, conditions);
@@ -157,7 +283,7 @@ exports.GetJiraInstanceById = asynHandler(async (req, res, next) => {
   sendResponse(res, 1, 299, "Record Found", results.rows);
 });
 
-exports.UpdateJiraIssue = asynHandler(async (req, res, next) => {
+exports.UpdateJiraIssueChannel = asynHandler(async (req, res, next) => {
   const tableName = "requests";
   const columnsToSelect = [];
   const conditions = [
@@ -196,9 +322,9 @@ exports.UpdateJiraIssue = asynHandler(async (req, res, next) => {
       {
         fields: {
           summary: summary,
-          description: description ?? "",
+          description: description ?? null,
           issuetype: {
-            name: issuetype ?? "",
+            name: issuetype ?? null,
           },
         },
       },

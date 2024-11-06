@@ -39,6 +39,16 @@
             "date": 1730708164876,
             "name": "logs/rotate-2024-11-04.log",
             "hash": "bb2e8e28a7295133d779fedb516586a6f507cd83372d994b2850d1231697a3f4"
+        },
+        {
+            "date": 1730800674801,
+            "name": "logs/rotate-2024-11-05.log",
+            "hash": "987b24f198fb6cb4475925b20b237333a533393c82d240ea74a4b3904c9b629b"
+        },
+        {
+            "date": 1730851204451,
+            "name": "logs/rotate-2024-11-06.log",
+            "hash": "887f28a7457958028d3e39ab14768a9550afc1427eb553e2ef662a49f3f27226"
         }
     ],
     "hashType": "sha256"

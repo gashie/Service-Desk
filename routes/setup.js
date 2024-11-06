@@ -17,6 +17,8 @@ const {
   ListAllJiraIssues,
   ListJiraIssue,
   UpdateJiraIssue,
+  CreateJiraIssue,
+  GetJiraIssue,
 } = require("../controllers/configs/jira/jira_issues");
 const router = express.Router();
 
@@ -29,10 +31,13 @@ router.route("/system/list_jira_instances").post(protect, ListAllJiraInstances);
 router.route("/system/update_jira_instance").post(protect, UpdateJiraInstance);
 router.route("/system/get_jira_instance").post(protect, GetJiraInstanceById);
 
-router.route("/system/create_jira_issue").post(protect, SetupJiraIssue);
-router.route("/system/list_jira_issue").post(protect, ListJiraIssue);
-router.route("/system/list_jira_issues").post(protect, ListAllJiraIssues);
-router.route("/system/update_jira_issue").post(protect, UpdateJiraIssue);
+router.route("/create_jira_issue").post(protect, CreateJiraIssue);
+router.route("/get_jira_issue").post(protect, GetJiraIssue);
+router.route("/list_jira_issue").post(protect, ListJiraIssue);
+router.route("/list_jira_issues").post(protect, ListAllJiraIssues);
+router.route("/update_jira_issue").post(protect, UpdateJiraIssue);
+
+//jira issues with rabbit mq
 
 router.route("/system/test").post(protect, TestChannel);
 
