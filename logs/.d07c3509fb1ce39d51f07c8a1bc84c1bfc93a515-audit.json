@@ -46,9 +46,24 @@
             "hash": "987b24f198fb6cb4475925b20b237333a533393c82d240ea74a4b3904c9b629b"
         },
         {
-            "date": 1730851204451,
+            "date": 1730884445999,
             "name": "logs/rotate-2024-11-06.log",
-            "hash": "887f28a7457958028d3e39ab14768a9550afc1427eb553e2ef662a49f3f27226"
+            "hash": "95f44cfb8e0e83eaa133aba880570db4dacc6ac70891d58be19c375762224862"
+        },
+        {
+            "date": 1730937600287,
+            "name": "logs/rotate-2024-11-07.log",
+            "hash": "d8e5f982660b20112e661faddfb53c0db396db10bbbd68f0070603ca58eaeb9e"
+        },
+        {
+            "date": 1731060234453,
+            "name": "logs/rotate-2024-11-08.log",
+            "hash": "4f9dada1a505ff0c1bb32ae3d2830953e01803d9a22ace0ba285b3e336d5718b"
+        },
+        {
+            "date": 1731312984078,
+            "name": "logs/rotate-2024-11-11.log",
+            "hash": "14b8417e3ced561bb577e5b4d3717a4a8987dc425f818e87f0eb475dbe331069"
         }
     ],
     "hashType": "sha256"

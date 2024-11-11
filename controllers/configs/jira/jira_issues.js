@@ -102,6 +102,36 @@ exports.GetJiraIssue = asynHandler(async (req, res, next) => {
   sendResponse(res, 1, 200, "Record Found", response);
 });
 
+exports.AddComment = asynHandler(async (req, res, next) => {
+  const issueKey = req.body.issueKey;
+  const comment = req.body.comment;
+
+  let jiraInstance = await getActiveJiraInstance();
+  let mainJiraInstance = jiraInstance.rows[0];
+
+  const GhIPSSAppUrl = process.env.GhIPSS_APP_URL;
+  const JiraUsername = mainJiraInstance.username;
+  const JiraPassword = mainJiraInstance.password;
+
+  const response = await makeApiCall(
+    `${GhIPSSAppUrl}issue/${issueKey}/comment`,
+    "POST",
+    {
+      body: comment,
+    },
+    { Accept: "application/json", "Content-Type": "application/json" },
+    "Basic",
+    {
+      username: JiraUsername,
+      password: JiraPassword,
+    }
+  );
+
+  console.log(response);
+
+  sendResponse(res, 1, 201, "Comment created", response);
+});
+
 exports.UpdateJiraIssue = asynHandler(async (req, res, next) => {
   const issueKey = req.body.issueKey;
   const { summary, description, issuetype } = req.body;
